@@ -1,6 +1,6 @@
 from fileinput import filename
 from operator import index
-from typing import Any, Union, List
+from typing import Any, Union, List, Tuple
 from pydantic import BaseModel
 from fastapi import FastAPI
 import openai
@@ -34,7 +34,7 @@ async def example():
     return {"improved_code": new, "explanation": exp}
 
 
-def improve_code(code):
+def improve_code(code: str) -> str:
     query_string = f"""rewrite the function elegantly
 
     {code}
@@ -74,24 +74,11 @@ class SplitPyFileReqBody(BaseModel):
     cursor_line: int
     cursor_character: int
 
-@app.post("/split_large_py_file")
+@app.post("/improve_pyfile")
 async def split_large_py_file(
     py_file: SplitPyFileReqBody
 ):
-    py_ast: ast.Module = ast.parse(
-        source = py_file.file_text,
-        filename = py_file.filename
-    )
-
-    py_file_items: List[Any] = py_ast.body
-
-    print("file items: ", py_file_items)
-    split_items = split_py_file_items(py_file_items)
-    print("split items: ", split_items)
-    split_items = [turn_split_items_back_into_code(py_file.file_text, items) for items in split_items]
-
-    print("split items: ", split_items)
-    return split_items
+    return improve_all_code(py_file.file_text, py_file.filename)
 
 
     
@@ -119,8 +106,7 @@ def split_py_file_items(items: List[Any]) -> List[Union[List[Any], ast.FunctionD
 
     return ret
 
-def turn_split_items_back_into_code(og_source: str, items: Union[List[Any], ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]) -> str:
-    lines = og_source.splitlines()
+def turn_split_item_into_line_ranges(items: Union[List[Any], ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]) -> List[Tuple[int, int]]:
     if isinstance(items, list):
         first = items[0].lineno
         last = items[-1].end_lineno
@@ -128,5 +114,28 @@ def turn_split_items_back_into_code(og_source: str, items: Union[List[Any], ast.
         first = items.lineno
         last = items.end_lineno
     
-    print(f"{first=}, {last=}")
-    return lines[first-1:last]
+    # the lines are 1 indexed when coming out of the AST, so subtract the first one by 1
+    return first - 1, last
+
+class ImprovementResults(BaseModel):
+    file_ranges: List[Tuple[int, int]]
+    improved_sections: List[str]
+    explanations: List[str]
+
+def improve_all_code(all_code: str, filename: str = "<string>") -> ImprovementResults:
+    code_lines = all_code.splitlines()
+
+    py_file_items: List[Any] = ast.parse(
+        source = all_code,
+        filename = filename
+    ).body
+
+    # split up AST item list to separate functions from things chillin in the top level
+    split_items = split_py_file_items(py_file_items)
+    file_ranges = [turn_split_item_into_line_ranges(item) for item in split_items]
+
+    sections_to_improve = ["\n".join(code_lines[start:end]) for start, end in file_ranges]
+    improved_sections = [improve_code(section) for section in sections_to_improve]
+    explanations = [explain_change(old, new) for old, new in zip(sections_to_improve, improved_sections)]
+
+    return ImprovementResults(file_ranges=file_ranges, improved_sections=improved_sections, explanations=explanations)
