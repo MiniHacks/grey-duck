@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Box } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import MyHeading, { MyHeadingProps } from "./MyHeading";
