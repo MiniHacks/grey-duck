@@ -18,13 +18,11 @@ const Card = ({ title, caption: text }: Props) => {
 export const Cards = () => (
   <Box px={4} py={12}>
     <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-      <ScaleFade initialScale={0.9} in={isOpen}>
-        <Card
-          title={"1. Write some code"}
-          caption={`Write three for-loops in a row and contemplate whether you're 
-            actually a competent programmer.`}
-        />
-      </ScaleFade>
+      <Card
+        title={"1. Write some code"}
+        caption={`Write three for-loops in a row and contemplate whether you're 
+          actually a competent programmer.`}
+      />
 
       <Card
         title={"2. Receive suggestions"}

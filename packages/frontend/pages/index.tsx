@@ -1,8 +1,7 @@
 /* eslint-disable prettier/prettier */
 import type { NextPage } from "next";
-import { Text, Flex, Heading, Button } from "@chakra-ui/react";
+import { Text, Flex, Heading, Button, Image } from "@chakra-ui/react";
 import { Cards } from '../components/Cards';
-import { ImgSlider } from '../components/Slider'
 import PageLayout from "../components/Layout/PageLayout";
 
 const Home: NextPage = () => {
@@ -40,8 +39,8 @@ const Home: NextPage = () => {
         </Flex>
        
         <Cards />
-      
-        <ImgSlider />
+
+        <Image />
 
       </Flex>
     </PageLayout>
