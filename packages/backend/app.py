@@ -2,7 +2,7 @@ from fileinput import filename
 from operator import index
 from typing import Any, Union, List, Tuple
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import openai
 import os
 import difflib  # this is in the stdlib? based.
@@ -126,28 +126,31 @@ class ImprovementResults(BaseModel):
 def improve_all_code(all_code: str, filename: str = "<string>") -> ImprovementResults:
     code_lines = all_code.splitlines()
 
-    py_file_items: List[Any] = ast.parse(
-        source = all_code,
-        filename = filename
-    ).body
+    try:
+        py_file_items: List[Any] = ast.parse(
+            source = all_code,
+            filename = filename
+        ).body
 
-    # split up AST item list to separate functions from things chillin in the top level
-    split_items = split_py_file_items(py_file_items)
-    file_ranges = [turn_split_item_into_line_ranges(item) for item in split_items]
+        # split up AST item list to separate functions from things chillin in the top level
+        split_items = split_py_file_items(py_file_items)
+        file_ranges = [turn_split_item_into_line_ranges(item) for item in split_items]
 
-    sections_to_improve = ["\n".join(code_lines[start:end]) for start, end in file_ranges]
-    improved_sections = [improve_code(section) for section in sections_to_improve]
-    explanations = {
-        i: explain_change(old, new)
-        for i, (old, new) in enumerate(zip(sections_to_improve, improved_sections))
-        if is_change_needed(old, new)
-    }
+        sections_to_improve = ["\n".join(code_lines[start:end]) for start, end in file_ranges]
+        improved_sections = [improve_code(section) for section in sections_to_improve]
+        explanations = {
+            i: explain_change(old, new)
+            for i, (old, new) in enumerate(zip(sections_to_improve, improved_sections))
+            if is_change_needed(old, new)
+        }
 
-    return ImprovementResults(
-        file_ranges=[file_ranges[i] for i in explanations.keys()],
-        improved_sections=[improved_sections[i] for i in explanations.keys()],
-        explanations=list(explanations.values())
-    )
+        return ImprovementResults(
+            file_ranges=[file_ranges[i] for i in explanations.keys()],
+            improved_sections=[improved_sections[i] for i in explanations.keys()],
+            explanations=list(explanations.values())
+        )
+    except SyntaxError:
+        raise HTTPException(400, "Syntatically invalid python")
 
 def is_change_needed(old_py: str, new_py: str) -> bool:
     """Check if old code and new code is meaningfully different. 
@@ -159,6 +162,19 @@ def is_change_needed(old_py: str, new_py: str) -> bool:
         new_ast = ast.dump(ast.parse(new_py), indent=1)
         seq_matcher = difflib.SequenceMatcher(a=old_ast, b=new_ast)
 
-        return seq_matcher.ratio() < 0.7
+        ratio = seq_matcher.ratio()
+        ret = ratio < 0.7
+        if not ret:
+            print("###################################")
+            print("old code:")
+            print(old_py)
+            print("---------------------")
+            print("new code:")
+            print(new_py)
+            print("--------------")
+            print(f"sim score of {ratio}")
+            print("###################################")
+
+        return ret
     except SyntaxError:
         return False
