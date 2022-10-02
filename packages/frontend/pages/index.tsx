@@ -21,7 +21,7 @@ const Home: NextPage = () => {
     });
   }, []);
   return (
-    <PageLayout title={"geese, by minihacks"}>
+    <PageLayout title={"Grey Duck"}>
       <Flex
         bgGradient={"linear(to-br, #B1A17B, #7C62EE, #C25BD4)"}
         direction={"column"}

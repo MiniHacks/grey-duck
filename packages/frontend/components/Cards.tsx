@@ -25,9 +25,9 @@ export const Cards = () => (
       />
 
       <Card
-        title={"2. Receive suggestions"}
-        caption={`Let the grey duck honk suggestions at you and realize that maybe
-            40 if statements was not the most optimal solution after all.`}
+        title={"2. Receive suggestions from Grey Duck"}
+        caption={`Pair program with a goose to close the feedback loop.
+          She writes idiomatic python.`}
       />
       <Card
         title={"3. Become numpy expert"}

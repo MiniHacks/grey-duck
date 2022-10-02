@@ -11,7 +11,7 @@ const MyHeading = ({ title }: MyHeadingProps): JSX.Element => (
   <Head>
     <title>{title || DEFAULT_TITLE}</title>
     <meta name={"description"} content={DEFAULT_DESC} />
-    <link rel={"icon"} href={"/favicon.ico"} />
+    <link rel={"icon"} href={"/logo_white.ico"} />
   </Head>
 );
 export default MyHeading;
