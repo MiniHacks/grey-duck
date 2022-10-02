@@ -10,5 +10,5 @@
     "typescript.tsc.autoDetect": "off",
     "editor.tabCompletion": "on",
     "diffEditor.codeLens": true,
-    "workbench.colorTheme": "Monokai Dimmed"
+    // "workbench.colorTheme": "Monokai Dimmed"
 }
