@@ -59,7 +59,7 @@ def explain_change(initial_code, new_code):
     result = openai.Completion.create(
         model="text-davinci-002",
         prompt=query_string,
-        max_tokens=64,
+        max_tokens=128,
         temperature=0,
         stop=["---", '"""', "\n\n"],
     )
