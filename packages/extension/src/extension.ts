@@ -2,27 +2,30 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { showSideBar } from './sidebar';
-import { subscribeToDocumentChanges, EMOJI_MENTION } from './diagnostics';
+import { subscribeToDocumentChanges, KEYWORD_MENTION } from './diagnostics';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	const emojiDiagnostics = vscode.languages.createDiagnosticCollection("emoji");
-	context.subscriptions.push(emojiDiagnostics);
+	const keywordDiagnostics = vscode.languages.createDiagnosticCollection("goose");
+	context.subscriptions.push(keywordDiagnostics);
 
 	console.log("samyok: loading doc changes");
 	
-	subscribeToDocumentChanges(context, emojiDiagnostics);
+	subscribeToDocumentChanges(context, keywordDiagnostics);
 
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider('python', new Emojinfo(), {
-			providedCodeActionKinds: Emojinfo.providedCodeActionKinds
+		vscode.languages.registerCodeActionsProvider('python', new KeywordInfo(), {
+			providedCodeActionKinds: KeywordInfo.providedCodeActionKinds
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(COMMAND, () => vscode.env.openExternal(vscode.Uri.parse('https://unicode.org/emoji/charts-12.0/full-emoji-list.html')))
+		vscode.commands.registerCommand(COMMAND, () => {
+			// make the epic cool sidebar show up
+			showSideBar(context);
+		})
 	);
 	
 	// This line of code will only be executed once when your extension is activated
@@ -36,8 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from hackmit-ext!');
 
-		// makes an epic cool sidebar
-		showSideBar(context);
+		// showSideBar(context);
 	});
 	context.subscriptions.push(disposable);
 }
@@ -50,7 +52,7 @@ const COMMAND = 'code-actions-sample.command';
 /**
  * Provides code actions corresponding to diagnostic problems.
  */
-export class Emojinfo implements vscode.CodeActionProvider {
+export class KeywordInfo implements vscode.CodeActionProvider {
 
 	public static readonly providedCodeActionKinds = [
 		vscode.CodeActionKind.QuickFix
@@ -59,13 +61,13 @@ export class Emojinfo implements vscode.CodeActionProvider {
 	provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] {
 		// for each diagnostic entry that has the matching `code`, create a code action command
 		return context.diagnostics
-			.filter(diagnostic => diagnostic.code === EMOJI_MENTION)
+			.filter(diagnostic => diagnostic.code === KEYWORD_MENTION)
 			.map(diagnostic => this.createCommandCodeAction(diagnostic));
 	}
 
 	private createCommandCodeAction(diagnostic: vscode.Diagnostic): vscode.CodeAction {
-		const action = new vscode.CodeAction('Learn more...', vscode.CodeActionKind.QuickFix);
-		action.command = { command: COMMAND, title: 'Learn more about emojis', tooltip: 'This will open the unicode emoji page.' };
+		const action = new vscode.CodeAction('Show in Sidebar', vscode.CodeActionKind.QuickFix);
+		action.command = { command: COMMAND, title: 'Detailed Info', tooltip: 'This will open detailed info on the sidebar.' };
 		action.diagnostics = [diagnostic];
 		action.isPreferred = true;
 		return action;
