@@ -154,8 +154,11 @@ def is_change_needed(old_py: str, new_py: str) -> bool:
     
     Implementation is based on string diffing the human readable representations of python AST
     """
-    old_ast = ast.dump(ast.parse(old_py), indent=1)
-    new_ast = ast.dump(ast.parse(new_py), indent=1)
-    seq_matcher = difflib.SequenceMatcher(a=old_ast, b=new_ast)
+    try:
+        old_ast = ast.dump(ast.parse(old_py), indent=1)
+        new_ast = ast.dump(ast.parse(new_py), indent=1)
+        seq_matcher = difflib.SequenceMatcher(a=old_ast, b=new_ast)
 
-    return seq_matcher.ratio() < 0.7
+        return seq_matcher.ratio() < 0.7
+    except SyntaxError:
+        return False
