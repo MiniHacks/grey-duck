@@ -1,18 +1,12 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { showSideBar } from './sidebar';
 import { subscribeToDocumentChanges, KEYWORD_MENTION } from './diagnostics';
 
-// this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
+	// watch for keywords in python code
 	const keywordDiagnostics = vscode.languages.createDiagnosticCollection("goose");
 	context.subscriptions.push(keywordDiagnostics);
-
-	console.log("samyok: loading doc changes");
-	
 	subscribeToDocumentChanges(context, keywordDiagnostics);
 
 	context.subscriptions.push(
@@ -23,7 +17,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(COMMAND, () => {
-			// make the epic cool sidebar show up
 			showSideBar(context);
 		})
 	);
@@ -59,7 +52,6 @@ export class KeywordInfo implements vscode.CodeActionProvider {
 	];
 
 	provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] {
-		// for each diagnostic entry that has the matching `code`, create a code action command
 		return context.diagnostics
 			.filter(diagnostic => diagnostic.code === KEYWORD_MENTION)
 			.map(diagnostic => this.createCommandCodeAction(diagnostic));

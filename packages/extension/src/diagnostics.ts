@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 
 /** Code that is used to associate diagnostic entries with code actions. */
 export const KEYWORD_MENTION = 'keyword_mention';
+
+// keyword that diagnostics looks for to complain about
 const KEYWORD = 'goose';
 
 export function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection): void {
@@ -9,19 +11,24 @@ export function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics:
 
 	for (let lineIndex = 0; lineIndex < doc.lineCount; lineIndex++) {
 		const lineOfText = doc.lineAt(lineIndex);
+
+		// DETERMINE WHETHER THE LINE OF CODE IS SUS HERE
+		// const jsonStr = isSus(lineOfText.text); 
+		const jsonStr = '{"reason": "insert reasoning here"}';
 		if (lineOfText.text.includes(KEYWORD)) {
-			diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex));
+			diagnostics.push(createDiagnostic(doc, jsonStr, lineOfText, lineIndex));
 		}
 	}
 
-	keywordDiagnostics.set(doc.uri, diagnostics);
+	keywordDiagnostics.set(doc.uri, diagnostics);	
 }
 
-function createDiagnostic(doc: vscode.TextDocument, lineOfText: vscode.TextLine, lineIndex: number): vscode.Diagnostic {
+function createDiagnostic(doc: vscode.TextDocument, info : string, lineOfText: vscode.TextLine, lineIndex: number): vscode.Diagnostic {
 	const index = lineOfText.text.indexOf(KEYWORD);
 	const range = new vscode.Range(lineIndex, index, lineIndex, index + KEYWORD.length);
+	const json = JSON.parse(info);
 
-	const diagnostic = new vscode.Diagnostic(range, `why the heck did you write the word ${KEYWORD}?`,
+	const diagnostic = new vscode.Diagnostic(range, json["reason"],
 		vscode.DiagnosticSeverity.Information);
 	diagnostic.code = KEYWORD_MENTION;
 	return diagnostic;
