@@ -9,7 +9,9 @@ const Home: NextPage = () => {
   const onClick = useCallback(() => {
     // eslint-disable-next-line no-alert
     if (window.innerWidth < 768) return alert("Please use a desktop browser to use this feature");
+    if (localStorage.getItem("session")) window.open(localStorage.getItem("session") || "", "_blank");
     return fetch("https://greygoose.guide/create-session").then(r => r.json()).then((res) => {
+      localStorage.setItem("session", res.url);
       window.open(res.url, "_blank");
     });
   }, []);
