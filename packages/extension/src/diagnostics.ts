@@ -3,17 +3,17 @@ import axios from 'axios';
 import { debounce } from 'lodash';
 
 /** Code that is used to associate diagnostic entries with code actions. */
-export const KEYWORD_MENTION = 'GreyDuck';
+export const GREYDUCK_DIAGNOSTIC_CODE = 'GreyDuck';
 
-// keyword that diagnostics looks for to complain about
-const KEYWORD = 'goose';
-
-export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection): Promise<void> {
+export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection, context: vscode.ExtensionContext): Promise<void> {
 	const diagnostics: vscode.Diagnostic[] = [];
  
 	console.log("RUNNING REFRESH DIAGNOSTICS");
 
 	const request = await getImprovedCode();
+	// store the request in the context.globalState
+	context.globalState.update('data', request);
+
 	const { file_ranges, improved_sections, explanations } = request;
 
 	for(let i = 0; i < file_ranges.length; i++){
@@ -38,41 +38,33 @@ async function getImprovedCode() {
 			cursor_line: 0, 
 			cursor_character: 0
 		};
-		console.log({ data })
+		console.log("sending request", { data })
 		const res = await axios.post('http://localhost:8888/backend/improve_pyfile', data);
-		console.log(res.data);
+		console.log("got request", res.data);
 		return res.data;
 	} catch (e) {
 		console.log(e);
 	}
 }
 
-async function getFileInformation() {
-	const editor = vscode.window.activeTextEditor;
-	console.log(editor?.document.offsetAt)
-
-	/*
-	const test = await axios.post('/localhost:8888/backend/', {
-		// mouse position info
-    start: editor?.document.offsetAt(editor.selection.start),
-    end: editor?.document.offsetAt(editor.selection.end),
-		active: editor?.document.offsetAt(editor.selection.active)
-  });
-	*/
-}
-
 function createDiagnostic(doc: vscode.TextDocument, info : string, rowStart: number, rowEnd: number): vscode.Diagnostic {
 	const range = new vscode.Range(rowStart, 0, rowEnd + 1, 0);
 	const diagnostic = new vscode.Diagnostic(range, info, vscode.DiagnosticSeverity.Information);
-	diagnostic.code = KEYWORD_MENTION;
+	diagnostic.code = GREYDUCK_DIAGNOSTIC_CODE;
 	return diagnostic;
 }
 
 const DEBOUNCE_TIME = 1000;
 
 export function subscribeToDocumentChanges(context: vscode.ExtensionContext, keywordDiagnostic: vscode.DiagnosticCollection): void {
-	console.log("DEBOUNCING SHIT!!!");
-	const debouncedRefreshDiagnostics = debounce((doc: vscode.TextDocument) => refreshDiagnostics(doc, keywordDiagnostic), DEBOUNCE_TIME);
+	const debouncedRefreshDiagnostics = debounce((doc: vscode.TextDocument) => refreshDiagnostics(doc, keywordDiagnostic, context), DEBOUNCE_TIME);
+
+	context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(async (doc) => {
+		if (doc.languageId === 'python') {
+			debouncedRefreshDiagnostics(doc);
+		}
+	}));
+
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(async (event) => {
 			if (event.document.languageId === 'python') {
