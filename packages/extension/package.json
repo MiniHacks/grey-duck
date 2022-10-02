@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:hackmit-ext.helloWorld"
+    "onCommand:hackmit-ext.helloWorld",
+    "onLanguage:python"
   ],
   "main": "./out/extension.js",
   "contributes": {
