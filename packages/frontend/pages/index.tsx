@@ -40,7 +40,7 @@ const Home: NextPage = () => {
        
         <Cards />
 
-        <Image />
+        <Image src="pixel_goose_animated.gif" alt="pixel goose"/>
 
       </Flex>
     </PageLayout>
