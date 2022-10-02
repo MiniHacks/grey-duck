@@ -1,14 +1,15 @@
 import { Box, SimpleGrid, Text, Image, ScaleFade } from "@chakra-ui/react";
 
 interface Props {
+  image: string;
   title: string;
   caption: string;
 }
 
-const Card = ({ title, caption: text }: Props) => {
+const Card = ({ image, title, caption: text }: Props) => {
   return (
-    <Box boxShadow={"lg"} p={8} bg={"white"} borderRadius={"16px"}>
-      <Image mb={"6"} boxSize={"200px"} src={""} alt={""} />
+    <Box boxShadow={"lg"} p={4} bg={"white"} borderRadius={"16px"}>
+      <Image overflow="hidden" mb={"6"} boxSize={"425px"} src={image} alt={""} />
       <Text fontWeight={"bold"}>{title}</Text>
       <Text>{text}</Text>
     </Box>
@@ -17,21 +18,22 @@ const Card = ({ title, caption: text }: Props) => {
 
 export const Cards = () => (
   <Box px={4} py={12}>
-    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
+    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
       <Card
-        title={"1. Write some code"}
-        caption={`Write three for-loops in a row and contemplate whether you're 
-          actually a competent programmer.`}
-      />
+        image="first.gif"
+        title={"Data Structure Aware"}
+        caption={`Models the runtime and space complexity of your code.`}
+      /> 
 
       <Card
-        title={"2. Receive suggestions from Grey Duck"}
-        caption={`Pair program with a goose to close the feedback loop.
-          She writes idiomatic python.`}
+        image="second.gif"
+        title={"Understands Python Inside and Out"}
+        caption={`Knows about language features you don't.`}
       />
       <Card
-        title={"3. Become numpy expert"}
-        caption={"happy x600 speed improvement"}
+        image="third.gif"
+        title={"Deep Ecosystem Knowledge"}
+        caption={"Leverages tooling for maximum performance."}
       />
     </SimpleGrid>
   </Box>

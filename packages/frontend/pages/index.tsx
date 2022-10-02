@@ -36,8 +36,8 @@ const Home: NextPage = () => {
             fontWeight={"bold"}>
             grey duck.
           </Text>
-          <Heading mb={20} size={"lg"}>
-            your mentor, line-by-line
+          <Heading as='i' mb={20} size={"lg"}>
+            the goose writes idiomatic python!?
           </Heading>
         </Flex>
 
