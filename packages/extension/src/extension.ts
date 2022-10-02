@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() {}
 
-const COMMAND = 'code-actions-sample.command';
+const COMMAND = 'grey-duck-guide.command';
 
 /**
  * Provides code actions corresponding to diagnostic problems.
