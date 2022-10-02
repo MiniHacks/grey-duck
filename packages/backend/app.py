@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 import openai
 import os
+import difflib  # this is in the stdlib? based.
 import ast
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -136,6 +137,25 @@ def improve_all_code(all_code: str, filename: str = "<string>") -> ImprovementRe
 
     sections_to_improve = ["\n".join(code_lines[start:end]) for start, end in file_ranges]
     improved_sections = [improve_code(section) for section in sections_to_improve]
-    explanations = [explain_change(old, new) for old, new in zip(sections_to_improve, improved_sections)]
+    explanations = {
+        i: explain_change(old, new)
+        for i, (old, new) in enumerate(zip(sections_to_improve, improved_sections))
+        if is_change_needed(old, new)
+    }
 
-    return ImprovementResults(file_ranges=file_ranges, improved_sections=improved_sections, explanations=explanations)
+    return ImprovementResults(
+        file_ranges=[file_ranges[i] for i in explanations.keys()],
+        improved_sections=[improved_sections[i] for i in explanations.keys()],
+        explanations=list(explanations.values())
+    )
+
+def is_change_needed(old_py: str, new_py: str) -> bool:
+    """Check if old code and new code is meaningfully different. 
+    
+    Implementation is based on string diffing the human readable representations of python AST
+    """
+    old_ast = ast.dump(ast.parse(old_py), indent=1)
+    new_ast = ast.dump(ast.parse(new_py), indent=1)
+    seq_matcher = difflib.SequenceMatcher(a=old_ast, b=new_ast)
+
+    return seq_matcher.ratio() < 0.7
