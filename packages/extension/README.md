@@ -1,6 +1,6 @@
 # hackmit-ext README
 
-This is the README for your extension "hackmit-ext". After writing up a brief description, we recommend including the following sections.
+This is the README for our extension "hackmit-ext". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

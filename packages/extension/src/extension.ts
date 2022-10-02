@@ -17,9 +17,22 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from hackmit-ext!');
-	});
 
+		// makes an epic cool sidebar
+		showSideBar(context);
+	});
 	context.subscriptions.push(disposable);
+}
+
+function showSideBar(context: vscode.ExtensionContext) {
+	context.subscriptions.push(
+	vscode.window.createWebviewPanel(
+		'sidebar', 						 // type of webview (internal)
+		'GooseMoose', 				 // title 
+		vscode.ViewColumn.Two, // show in secondary sidebar
+		{} 										 // webview options
+	)
+);
 }
 
 // this method is called when your extension is deactivated
