@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { debounce } from 'lodash';
 
 /** Code that is used to associate diagnostic entries with code actions. */
 export const KEYWORD_MENTION = 'GreyDuck';
@@ -10,6 +11,7 @@ const KEYWORD = 'goose';
 export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection): Promise<void> {
 	const diagnostics: vscode.Diagnostic[] = [];
  
+	console.log("RUNNING REFRESH DIAGNOSTICS");
 
 	const request = await getImprovedCode();
 	const { file_ranges, improved_sections, explanations } = request;
@@ -23,6 +25,7 @@ export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagno
 
 	keywordDiagnostics.set(doc.uri, diagnostics);	
 }
+
 
 async function getImprovedCode() {
 	try {
@@ -65,23 +68,19 @@ function createDiagnostic(doc: vscode.TextDocument, info : string, rowStart: num
 	return diagnostic;
 }
 
+const DEBOUNCE_TIME = 1000;
+
 export function subscribeToDocumentChanges(context: vscode.ExtensionContext, keywordDiagnostic: vscode.DiagnosticCollection): void {
-    console.log("samyok: listen to document changes");
-	if (vscode.window.activeTextEditor) {
-		refreshDiagnostics(vscode.window.activeTextEditor.document, keywordDiagnostic);
-	}
+	console.log("DEBOUNCING SHIT!!!");
+	const debouncedRefreshDiagnostics = debounce((doc: vscode.TextDocument) => refreshDiagnostics(doc, keywordDiagnostic), DEBOUNCE_TIME);
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveTextEditor(editor => {
-			if (editor) {
-				refreshDiagnostics(editor.document, keywordDiagnostic);
+		vscode.workspace.onDidChangeTextDocument(async (event) => {
+			if (event.document.languageId === 'python') {
+				debouncedRefreshDiagnostics(event.document);
 			}
 		})
 	);
-
-	context.subscriptions.push(
-		vscode.workspace.onDidChangeTextDocument(e => refreshDiagnostics(e.document, keywordDiagnostic))
-	);
-
+	
 	context.subscriptions.push(
 		vscode.workspace.onDidCloseTextDocument(doc => keywordDiagnostic.delete(doc.uri))
 	);
