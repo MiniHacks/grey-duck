@@ -39,7 +39,7 @@ async function getImprovedCode() {
 			cursor_character: 0
 		};
 		console.log("sending request", { data })
-		const res = await axios.post('http://localhost:8888/backend/improve_pyfile', data);
+		const res = await axios.post('https://www.greyduck.guide/backend/improve_pyfile', data);
 		console.log("got request", res.data);
 		return res.data;
 	} catch (e) {
