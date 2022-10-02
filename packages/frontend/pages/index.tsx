@@ -3,16 +3,21 @@ import type {NextPage} from "next";
 import {Text, Flex, Heading, Button, Image, VStack} from "@chakra-ui/react";
 import {Cards} from '../components/Cards';
 import PageLayout from "../components/Layout/PageLayout";
-import {useCallback} from "react";
+import {useCallback, useState} from "react";
 
 const Home: NextPage = () => {
+  const [loading, setLoading] = useState(false);
   const onClick = useCallback(() => {
     // eslint-disable-next-line no-alert
     if (window.innerWidth < 768) return alert("Please use a desktop browser to use this feature");
     if (localStorage.getItem("session")) window.open(localStorage.getItem("session") || "", "_blank");
+    else setLoading(true);
     return fetch("https://greyduck.guide/create-session").then(r => r.json()).then((res) => {
       localStorage.setItem("session", res.url);
-      window.open(res.url, "_blank");
+      setTimeout(() => {
+        setLoading(false);
+        window.open(res.url, "_blank")
+      }, 1500);
     });
   }, []);
   return (
@@ -36,7 +41,7 @@ const Home: NextPage = () => {
           </Heading>
         </Flex>
 
-        <Button px={12} size={"lg"} bg={"#010318"} color={"white"} onClick={onClick}>
+        <Button isLoading={loading} px={12} size={"lg"} bg={"#010318"} color={"white"} onClick={onClick}>
           give it a try
         </Button>
 
