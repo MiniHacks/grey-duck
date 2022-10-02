@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { showSideBar } from './sidebar';
-import { subscribeToDocumentChanges, KEYWORD_MENTION } from './diagnostics';
+import { subscribeToDocumentChanges, GREYDUCK_DIAGNOSTIC_CODE, refreshDiagnostics } from './diagnostics';
 
 
 const COMMAND = 'grey-duck-guide.command';
@@ -16,12 +16,12 @@ export class KeywordInfo implements vscode.CodeActionProvider {
 	provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] {
 		// run "grey-duck-guide.command" command when squiggly line's "Quick Fix" button is clicked
 		return context.diagnostics
-			.filter(diagnostic => diagnostic.code === KEYWORD_MENTION)
+			.filter(diagnostic => diagnostic.code === GREYDUCK_DIAGNOSTIC_CODE)
 			.map(diagnostic => this.createCommandCodeAction(diagnostic));
 	}
 
 	private createCommandCodeAction(diagnostic: vscode.Diagnostic): vscode.CodeAction {
-		const action = new vscode.CodeAction(diagnostic.message, vscode.CodeActionKind.QuickFix);
+		const action = new vscode.CodeAction("Open Sidebar for more info", vscode.CodeActionKind.QuickFix);
 		action.command = { command: COMMAND, title: 'Detailed Info', tooltip: 'This will open detailed info on the sidebar.' };
 		action.diagnostics = [diagnostic];
 		action.isPreferred = true;
@@ -60,6 +60,15 @@ export function activate(context: vscode.ExtensionContext) {
 		// showSideBar(context);
 	});
 	context.subscriptions.push(disposable);
+
+
+	// see if we can get the current file
+	const editor = vscode.window.activeTextEditor;
+	if (editor) {
+		// run refreshDiagnostics on the current file
+		refreshDiagnostics(editor.document, keywordDiagnostics, context);
+	}
+	
 }
 
 // this method is called when your extension is deactivated
