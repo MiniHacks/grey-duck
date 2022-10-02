@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import axios from 'axios';
 
 /** Code that is used to associate diagnostic entries with code actions. */
 export const KEYWORD_MENTION = 'keyword_mention';
@@ -6,29 +7,54 @@ export const KEYWORD_MENTION = 'keyword_mention';
 // keyword that diagnostics looks for to complain about
 const KEYWORD = 'goose';
 
-export function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection): void {
+export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagnostics: vscode.DiagnosticCollection): Promise<void> {
 	const diagnostics: vscode.Diagnostic[] = [];
-
+ 
 	for (let lineIndex = 0; lineIndex < doc.lineCount; lineIndex++) {
 		const lineOfText = doc.lineAt(lineIndex);
 
-		// DETERMINE WHETHER THE LINE OF CODE IS SUS HERE
+		// DETERMINE WHETHER THE line OF CODE IS SUS HERE
 		// const jsonStr = isSus(lineOfText.text); 
-		const jsonStr = '{"reason": "insert reasoning here"}';
 		if (lineOfText.text.includes(KEYWORD)) {
-			diagnostics.push(createDiagnostic(doc, jsonStr, lineOfText, lineIndex));
+			const data = await getImprovedCode();
+			const info = data["improved_code"] + "\n" + data["explanation"];
+			diagnostics.push(createDiagnostic(doc, info, lineOfText, lineIndex));
+
+			getFileInformation();
 		}
 	}
 
 	keywordDiagnostics.set(doc.uri, diagnostics);	
 }
 
+async function getImprovedCode() {
+	try {
+		const res = await axios.get('http://localhost:8888/backend/example');
+		return res.data;
+		//return JSON.stringify(data);
+	} catch (e) {
+		console.log(e);
+	}
+}
+
+async function getFileInformation() {
+	const editor = vscode.window.activeTextEditor;
+	console.log(editor?.document.offsetAt)
+
+	/*
+	const test = await axios.post('/localhost:8888/backend/', {
+		// mouse position info
+    start: editor?.document.offsetAt(editor.selection.start),
+    end: editor?.document.offsetAt(editor.selection.end),
+		active: editor?.document.offsetAt(editor.selection.active)
+  });
+	*/
+}
+
 function createDiagnostic(doc: vscode.TextDocument, info : string, lineOfText: vscode.TextLine, lineIndex: number): vscode.Diagnostic {
 	const index = lineOfText.text.indexOf(KEYWORD);
 	const range = new vscode.Range(lineIndex, index, lineIndex, index + KEYWORD.length);
-	const json = JSON.parse(info);
-
-	const diagnostic = new vscode.Diagnostic(range, json["reason"],
+	const diagnostic = new vscode.Diagnostic(range, info,
 		vscode.DiagnosticSeverity.Information);
 	diagnostic.code = KEYWORD_MENTION;
 	return diagnostic;
