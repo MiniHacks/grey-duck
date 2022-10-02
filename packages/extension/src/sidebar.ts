@@ -2,31 +2,22 @@ import * as vscode from 'vscode';
 
 export function showSideBar(context: vscode.ExtensionContext) {
   // see if we have any active webviews
-  const wv = context.globalState.get('webview');
-  // @ts-ignore
-  if(wv?.visible) {
-    // if we do, show it
-    console.log("SHOWING SIDEBAR");
-    // @ts-ignore
-    wv?.show?.();
-  } else {
-    // if we don't, create it
-    console.log("CREATING SIDEBAR", wv);
-    const panel = vscode.window.createWebviewPanel(
-      'sidebar', 						 // type of webview (internal)
-      'GreyDuckGuide',    	 // title 
-      vscode.ViewColumn.Two, // show in secondary sidebar
-      {} 										 // webview options
-    );
-    // save the webview so we can show it later
-    context.globalState.update('webview', panel);
+  // if we don't, create it
+  console.log("CREATING SIDEBAR");
+  const panel = vscode.window.createWebviewPanel(
+    'sidebar', 						 // type of webview (internal)
+    'GreyDuckGuide',    	 // title 
+    vscode.ViewColumn.Two, // show in secondary sidebar
+    {} 										 // webview options
+  );
+  // save the webview so we can show it later
+  context.globalState.update('webview', panel);
 
-    context.subscriptions.push(panel);
-    setInterval(() => { 
-      // set the webview's html content
-      panel.webview.html = getSidebarContent(context);
-    }, 200);
-  }
+  context.subscriptions.push(panel);
+  setInterval(() => { 
+    // set the webview's html content
+    panel.webview.html = getSidebarContent(context);
+  }, 200);
 }
 
 
@@ -49,12 +40,16 @@ function getSidebarContent(context: vscode.ExtensionContext) {
   for(let i = 0; i < data?.file_ranges?.length; i++){
     // @ts-ignore`
     const activeClass = data?.file_ranges[i][0] <= pos && pos <= data?.file_ranges[i][1] ? "active" : "";
-    html += `<div class='code-container ${activeClass}'>`;
+    html += `<div class='code-container ${activeClass}'><p>We think this could be better written as:</p>`;
     // @ts-ignore
     html += codeHtml(data?.improved_sections[i], data?.file_ranges[i]);
     // @ts-ignore
-    html += `<div class="explanation">${data?.explanations[i]}</div>`;
+    html += `<p>Why is this better?</p><div class="explanation">${data?.explanations[i]}</div>`;
     html += "</div>";
+  }
+
+  if(!html.includes("code-container active")) {
+    html += "<p style='font-size: 20px'>Click into an underlined function to see where you can do better!</p>";
   }
 
   return `
@@ -73,12 +68,25 @@ function getSidebarContent(context: vscode.ExtensionContext) {
               display: block;
             }
 
+            .img-container {
+              display: flex;
+              justify-content: flex-end;
+              position: absolute;
+              bottom: 0;
+            }
+
+            div {
+              font-size: 18px;
+            }
+
           </style>
       </head>
       <body>
           <h1>GreyDuck Goose</h1>
-          <h2>write this instead</h2>
           ${html}
+          <div class="img-container">
+          <img src="https://www.greyduck.guide/pixel_goose_animated.gif" style="max-width: min(75%, 500px);"/>
+          </div>
       </body>
     </html>
   `;

@@ -17,7 +17,7 @@ export async function refreshDiagnostics(doc: vscode.TextDocument, keywordDiagno
 	const { file_ranges, improved_sections, explanations } = request;
 
 	for(let i = 0; i < file_ranges.length; i++){
-		const hoverText = explanations[i] || "No explanation available";
+		const hoverText = "This code could be written better!";
 		const range = file_ranges[i];
 		const diagnostic = createDiagnostic(doc, hoverText, range[0], range[1]);
 		diagnostics.push(diagnostic);
