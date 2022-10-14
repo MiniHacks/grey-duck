@@ -1,8 +1,13 @@
+![preview](preview.png)
+
 # grey-duck
+
+We won first place at HackMIT (Education Track) and won fourth place in the YCombinator pitch competition!
 
 Pair program with a goose to close the feedback loop. She writes idiomatic python.
 
-![preview](preview.png)
+Our VSCode extension leverages the power of GPT-3 to help programmers revise existing code and learn better techniques.
+
 
 ## Other Media
 - [Spectacle submission](https://spectacle.hackmit.org/project/118)
