@@ -2,6 +2,8 @@
 
 Pair program with a goose to close the feedback loop. She writes idiomatic python.
 
+![preview](preview.png)
+
 ## Other Media
 - [Spectacle submission](https://spectacle.hackmit.org/project/118)
 
